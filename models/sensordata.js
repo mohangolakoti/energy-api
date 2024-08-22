@@ -82,12 +82,19 @@ const sensordataSchema = new Schema(
       type: Schema.Types.Number,
       required: true,
     },
+    timestamp: { type: Date }
   },
   {
     timestamps: true,
   }
 );
 
+sensordataSchema.pre('save', function (next) {
+  const IST_OFFSET = 5.5 * 60 * 60 * 1000; // IST offset in milliseconds
+  const now = new Date();
+  this.timestamp = new Date(now.getTime() + IST_OFFSET);
+  next();
+});
   
 
 module.exports = mongoose.model("sensordata", sensordataSchema);
