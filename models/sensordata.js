@@ -6,95 +6,40 @@ const Schema = mongoose.Schema;
  
 const sensordataSchema = new Schema(
   {
-    lineVlotageR: {
-      type: Schema.Types.Number,
-      required: true,
+    // Meter 1
+    meter_1: { type: Schema.Types.String, required: true },
+    Voltage_V1N_meter_1: { type: Schema.Types.Number, required: true },
+    Voltage_V2N_meter_1: { type: Schema.Types.Number, required: true },
+    Voltage_V3N_meter_1: { type: Schema.Types.Number, required: true },
+    Voltage_V12_meter_1: { type: Schema.Types.Number, required: true },
+    Voltage_V23_meter_1: { type: Schema.Types.Number, required: true },
+    Voltage_V31_meter_1: { type: Schema.Types.Number, required: true },
+    Current_I1_meter_1: { type: Schema.Types.Number, required: true },
+    Current_I2_meter_1: { type: Schema.Types.Number, required: true },
+    Current_I3_meter_1: { type: Schema.Types.Number, required: true },
+    Total_KW_meter_1: { type: Schema.Types.Number, required: true },
+    Total_KVA_meter_1: { type: Schema.Types.Number, required: true },
+    Total_KVAR_meter_1: { type: Schema.Types.Number, required: true },
+    Avg_PF_meter_1: { type: Schema.Types.Number, required: true },  
+    Frequency_meter_1: { type: Schema.Types.Number, required: true },
+    TotalNet_KWH_meter_1: { type: Schema.Types.Number, required: true },
+    TotalNet_KVAH_meter_1: { type: Schema.Types.Number, required: true },
+    TotalNet_KVARH_meter_1: { type: Schema.Types.Number, required: true },
+    Neutral_Current_meter_1: { type: Schema.Types.Number, required: true },
+    timestamp: {
+      type: Date,
+      default: function () {
+        const now = new Date();
+        const IST_OFFSET = 5.5 * 60 * 60 * 1000; // IST offset in milliseconds
+        return new Date(now.getTime() + IST_OFFSET);
+      },
     },
-    lineVoltageY: {
-      type: Schema.Types.Number,
-      required: true,
-    },
-    lineVoltageB: {
-      type: Schema.Types.Number,
-      required: true,
-    },
-    phaseVolate1: {
-      type: Schema.Types.Number,
-      required: true,
-    },
-    phaseVoltage2: {
-      type: Schema.Types.Number,
-      required: true,
-    },
-    phaseVoltage3: {
-      type: Schema.Types.Number,
-      required: true,
-    },
-    current1: {
-      type: Schema.Types.Number,
-      required: true,
-    },
-    current2: {
-      type: Schema.Types.Number,
-      required: true,
-    },
-    current3: {
-      type: Schema.Types.Number,
-      required: true,
-    },
-    totalKW: {
-      type: Schema.Types.Number,
-      required: true,
-    },
-    totalKVA: {
-      type: Schema.Types.Number,
-      required: true,
-    },
-    powerFactor1: {
-      type: Schema.Types.Number,
-      required: true,
-    },
-    powerFactor2: {
-      type: Schema.Types.Number,
-      required: true,
-    },
-    powerFactor3: {
-      type: Schema.Types.Number,
-      required: true,
-    },
-    AvgPowerFactor: {
-      type: Schema.Types.Number,
-      required: true,
-    },
-    frequency: {
-      type: Schema.Types.Number,
-      required: true,
-    },
-    totalNetKVAH: {
-      type: Schema.Types.Number,
-      required: true,
-    },
-    totalNetKVAh: {
-      type: Schema.Types.Number,
-      required: true,
-    },
-    totalNetKVARH: {
-      type: Schema.Types.Number,
-      required: true,
-    },
-    timestamp: { type: Date }
   },
   {
     timestamps: true,
   }
 );
 
-sensordataSchema.pre('save', function (next) {
-  const IST_OFFSET = 5.5 * 60 * 60 * 1000; // IST offset in milliseconds
-  const now = new Date();
-  this.timestamp = new Date(now.getTime() + IST_OFFSET);
-  next();
-});
   
 
 module.exports = mongoose.model("sensordata", sensordataSchema);
