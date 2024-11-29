@@ -8,6 +8,7 @@ dotEnv.config();
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
+const moment = require('moment')
 
 const EnergyData = require('../models/energyData');
 
@@ -200,5 +201,45 @@ const getMonthlyEnergyConsumption = async (req, res) => {
     }
 };
 
+const getYesterdaysAndTodaysFirstRecords = async (req, res) => {
+    try {
+      // Define date ranges for yesterday and today
+      const yesterdayStart = moment().subtract(1, 'days').startOf('day').toDate();
+      const yesterdayEnd = moment().subtract(1, 'days').endOf('day').toDate();
+      const todayStart = moment().startOf('day').toDate();
+      const todayEnd = moment().endOf('day').toDate();
+  
+      // Query for the first record of yesterday
+      const yesterdayRecord = await EnergyData.findOne({
+        timestamp: { $gte: yesterdayStart, $lte: yesterdayEnd },
+      })
+        .sort({ timestamp: 1 }) // Ascending order by timestamp
+        .select('TotalNet_KWH_meter_1 Total_KVA_meter_1 timestamp'); // Select only relevant fields
+  
+      // Query for the first record of today
+      const todayRecord = await EnergyData.findOne({
+        timestamp: { $gte: todayStart, $lte: todayEnd },
+      })
+        .sort({ timestamp: 1 }) // Ascending order by timestamp
+        .select('TotalNet_KWH_meter_1 Total_KVA_meter_1 timestamp'); // Select only relevant fields
+  
+      // Respond with the records
+      res.status(200).json({
+        success: true,
+        data: {
+          yesterday: yesterdayRecord,
+          today: todayRecord,
+        },
+      });
+    } catch (error) {
+      console.error('Error fetching records:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch records',
+        error: error.message,
+      });
+    }
+  };
 
-module.exports = { sensorData, prevDayEnergy, energyConsumption, getHighestKva, sensorDataByDate, getMonthlyEnergyConsumption};
+
+module.exports = { sensorData, prevDayEnergy, energyConsumption, getHighestKva, sensorDataByDate, getMonthlyEnergyConsumption, getYesterdaysAndTodaysFirstRecords};

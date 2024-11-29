@@ -77,7 +77,7 @@ async function initializeInitialEnergyValue() {
 async function fetchDataAndStore() {
   try {
     console.log("Fetching and storing sensor data...");
-    const response = await axios.get("http://65.1.134.192:5000/api/sensordata");
+    const response = await axios.get("http://65.1.134.192:5000/api/sensordata1");
     const newData = response.data;
 
     // If no initial energy value has been set, set it to the current value
