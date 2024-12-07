@@ -11,6 +11,7 @@ const app = express();
 const sensorDataRoutes = require("./routes/route");
 const storageRoutes = require("./routes/storageRoute");
 const EnergyData = require("./models/energyData");
+const PeakData = require("./models/peakData");
 
 dotEnv.config();
 
@@ -32,17 +33,18 @@ mongoose
 app.use("/api", sensorDataRoutes);
 app.use("/api1", storageRoutes);
 
-let initialEnergyValue = null;
+let initialKWHValue = null;
+let initialKVAHValue = null;
 
 // Function to initialize the energy value from previous day's data
 async function initializeInitialEnergyValue() {
   try {
     console.log("Initializing initial energy value...");
 
-    const yesterday = format(new Date(Date.now() - 86400000), "yyyy-MM-dd");
+    //const yesterday = format(new Date(Date.now() - 86400000), "yyyy-MM-dd");
     const today = format(new Date(), "yyyy-MM-dd");
 
-    // Fetch previous day's last data
+    /* // Fetch previous day's last data
     const previousDayData = await EnergyData.findOne({
       timestamp: {
         $gte: new Date(yesterday),
@@ -52,9 +54,9 @@ async function initializeInitialEnergyValue() {
 
     if (previousDayData) {
       initialEnergyValue = previousDayData.TotalNet_KWH_meter_1;
-      console.log("Initial energy value stored from previous day:", initialEnergyValue);
+      console.log("Initial energy value stored from previous day:", initialEnergyValue); 
     } else {
-      console.log("No data found for the previous day. Fetching today's first record.");
+      console.log("No data found for the previous day. Fetching today's first record.");*/
       const todayFirstRecord = await EnergyData.findOne({
         timestamp: {
           $gte: new Date(today),
@@ -62,12 +64,12 @@ async function initializeInitialEnergyValue() {
       }).sort({ timestamp: 1 });
 
       if (todayFirstRecord) {
-        initialEnergyValue = todayFirstRecord.TotalNet_KWH_meter_1;
-        console.log("Initial energy value set to today's first record:", initialEnergyValue);
+        initialKWHValue = todayFirstRecord.TotalNet_KWH_meter_1;
+        initialKVAHValue = todayFirstRecord.TotalNet_KVAH_meter_1;
+        console.log("Initial energy value set to today's first record:", initialKWHValue, initialKVAHValue);
       } else {
         console.log("No data found for today yet.");
       }
-    }
   } catch (error) {
     console.error("Error initializing initial energy value:", error);
   }
@@ -81,22 +83,31 @@ async function fetchDataAndStore() {
     const newData = response.data;
 
     // If no initial energy value has been set, set it to the current value
-    if (initialEnergyValue === null) {
-      initialEnergyValue = newData.TotalNet_KWH_meter_1;
-      console.log("Setting initial energy value to the current value:", initialEnergyValue);
+    if (initialKWHValue === null && initialKVAHValue === null) {
+      initialKWHValue = newData.TotalNet_KWH_meter_1;
+      initialKVAHValue = newData.TotalNet_KVAH_meter_1;
+      console.log("Setting initial energy value to the current value:", initialKWHValue, initialKVAHValue);
     }
 
-    const energyConsumption = newData.TotalNet_KWH_meter_1 - initialEnergyValue;
+    const kwhConsumption = newData.TotalNet_KWH_meter_1 - initialKWHValue;
+    const kvahConsumption = newData.TotalNet_KVAH_meter_1 - initialKVAHValue;
+    const difference = kvahConsumption - kwhConsumption;
+    let powerFactor = (kwhConsumption / kvahConsumption)? kwhConsumption / kvahConsumption : 0;
+  
+    console.log(kwhConsumption)
+    console.log(kvahConsumption)
+    console.log(difference)
+    console.log(powerFactor)
 
     // Create a new record for energy data
     const newEnergyData = new EnergyData({
       timestamp: new Date(),
-      Total_KW_meter_1: newData.Total_KW_meter_1,
       TotalNet_KWH_meter_1: newData.TotalNet_KWH_meter_1,
-      Total_KVA_meter_1: newData.Total_KVA_meter_1,
-      Avg_PF_meter_1: newData.Avg_PF_meter_1,
       TotalNet_KVAH_meter_1: newData.TotalNet_KVAH_meter_1,
-      energy_consumption_meter_1: energyConsumption,
+      KWHConsumption: kwhConsumption,
+      KVAHConsumption: kvahConsumption,
+      Difference: difference,
+      PowerFactor: powerFactor
     });
 
     await newEnergyData.save();
@@ -107,9 +118,27 @@ async function fetchDataAndStore() {
   }
 }
 
+async function peakData() {
+  try{
+    console.log("Fetching and storing Peak data...");
+    const response = await axios.get("http://65.1.134.192:5000/api/sensordata1");
+    const newData1 = response.data;
+    const newPeakData = new PeakData({
+      timestamp: new Date(),
+      Total_KW_meter_1: newData1.Total_KW_meter_1,
+      Total_KVA_meter_1: newData1.Total_KVA_meter_1,
+    });
+    await newPeakData.save();
+    console.log("Sensor data stored successfully :", newPeakData);
+  }catch{
+
+  }
+}
+
 // Set intervals to initialize and fetch data every 10 minutes
-setInterval(initializeInitialEnergyValue, 10 * 60000);
-setInterval(fetchDataAndStore, 10 * 60000);
+setInterval(initializeInitialEnergyValue, 60 * 60000);
+setInterval(fetchDataAndStore, 60 * 60000);
+setInterval(peakData, 10 * 60000);
 
 app.listen(port, () => {
   console.log(`Server started on port ${port}`);

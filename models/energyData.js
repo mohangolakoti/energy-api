@@ -6,12 +6,12 @@ const energySchema = new mongoose.Schema({
         required: true
     },
     // Meter 70
-    Total_KW_meter_1: { type: Number, required: true, default: 0.0 },
     TotalNet_KWH_meter_1: { type: Number, required: true, default: 0.0 },
-    Total_KVA_meter_1: { type: Number, required: true, default: 0.0 },
-    Avg_PF_meter_1: { type: Number, required: true, default: 0.0 },
     TotalNet_KVAH_meter_1: { type: Number, required: true, default: 0.0 },
-    energy_consumption_meter_1: { type: Number, required: true, default: 0.0 },
+    KWHConsumption: { type: Number, required: true, default: 0.0 },
+    KVAHConsumption: { type: Number, required: true, default: 0.0 },
+    Difference: { type: Number, required: true, default: 0.0 },
+    PowerFactor: { type: Number, required: true, default: 0.0 }
 });
 
 module.exports = mongoose.model('EnergyData', energySchema);
