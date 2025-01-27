@@ -79,7 +79,35 @@ async function initializeInitialEnergyValue() {
 async function fetchDataAndStore() {
   try {
     console.log("Fetching and storing sensor data...");
-    const response = await axios.get("http://13.201.229.45:5000/api/sensordata1");
+
+    // Get the current date and calculate the start of the month
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1); // Set to the first day of the month
+    startOfMonth.setHours(0, 0, 0, 0); // Reset time to 00:00:00
+
+    // Fetch the first stored record for this month
+    const firstRecordThisMonth = await EnergyData.findOne({
+      timestamp: { $gte: startOfMonth },
+    })
+      .sort({ timestamp: 1 }) // Sort by ascending timestamp to get the first record
+      .select("TotalNet_KWH_meter_1 TotalNet_KVAH_meter_1");
+
+    // If no record exists for the current month, log and return
+    if (!firstRecordThisMonth) {
+      console.log("No records found for this month. Unable to calculate energy consumption.");
+      return;
+    }
+
+    const initialKWHValueM = firstRecordThisMonth.TotalNet_KWH_meter_1;
+    const initialKVAHValueM = firstRecordThisMonth.TotalNet_KVAH_meter_1;
+
+    console.log("This month's initial values:", {
+      initialKWHValueM,
+      initialKVAHValueM,
+    });
+
+
+    const response = await axios.get("http://65.0.95.129:5000/api/sensordata1");
     const newData = response.data;
 
     // If no initial energy value has been set, set it to the current value
@@ -93,11 +121,18 @@ async function fetchDataAndStore() {
     const kvahConsumption = newData.TotalNet_KVAH_meter_1 - initialKVAHValue;
     const difference = kvahConsumption - kwhConsumption;
     let powerFactor = (kwhConsumption / kvahConsumption)? kwhConsumption / kvahConsumption : 0;
+
+    //month values 
+    const kwhConsumptionM = newData.TotalNet_KWH_meter_1 - initialKWHValueM;
+    const kvahConsumptionM = newData.TotalNet_KVAH_meter_1 - initialKVAHValueM;
+    const differenceM = kvahConsumptionM - kwhConsumptionM;
+    const powerFactorM = (kwhConsumptionM / kvahConsumptionM)? kwhConsumptionM / kvahConsumptionM : 0;
   
     console.log(kwhConsumption)
     console.log(kvahConsumption)
     console.log(difference)
     console.log(powerFactor)
+    console.log(powerFactorM)
 
     // Create a new record for energy data
     const newEnergyData = new EnergyData({
@@ -107,7 +142,8 @@ async function fetchDataAndStore() {
       KWHConsumption: kwhConsumption,
       KVAHConsumption: kvahConsumption,
       Difference: difference,
-      PowerFactor: powerFactor
+      PowerFactor: powerFactor,
+      MonthPowerFactor:powerFactorM
     });
 
     await newEnergyData.save();
@@ -121,7 +157,7 @@ async function fetchDataAndStore() {
 async function peakData() {
   try{
     console.log("Fetching and storing Peak data...");
-    const response = await axios.get("http://13.201.229.45:5000/api/sensordata1");
+    const response = await axios.get("http://65.0.95.129:5000/api/sensordata1");
     const newData1 = response.data;
     const newPeakData = new PeakData({
       timestamp: new Date(),
@@ -131,7 +167,7 @@ async function peakData() {
     await newPeakData.save();
     console.log("Sensor data stored successfully :", newPeakData);
   }catch{
-
+    
   }
 }
 

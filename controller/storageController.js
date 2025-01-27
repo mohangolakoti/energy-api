@@ -12,6 +12,7 @@ const moment = require('moment')
 
 const EnergyData = require('../models/energyData');
 const PeakData = require('../models/peakData');
+const SensorData = require('../models/sensordata')
 
 const sensorData = async (req, res) => {
     try {
