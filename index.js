@@ -18,7 +18,7 @@ dotEnv.config();
 app.use(cors());
 app.use(bodyParser.json());
 
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 4000;
 
 mongoose.set("strictQuery", false);
 mongoose
@@ -107,7 +107,7 @@ async function fetchDataAndStore() {
     });
 
 
-    const response = await axios.get("http://65.0.95.129:5000/api/sensordata1");
+    const response = await axios.get("http://52.66.189.51:4000/api/sensordata1");
     const newData = response.data;
 
     // If no initial energy value has been set, set it to the current value
@@ -157,7 +157,7 @@ async function fetchDataAndStore() {
 async function peakData() {
   try{
     console.log("Fetching and storing Peak data...");
-    const response = await axios.get("http://65.0.95.129:5000/api/sensordata1");
+    const response = await axios.get("http://52.66.189.51:4000/api/sensordata1");
     const newData1 = response.data;
     const newPeakData = new PeakData({
       timestamp: new Date(),
