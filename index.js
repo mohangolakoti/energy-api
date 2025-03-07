@@ -79,6 +79,8 @@ async function initializeInitialEnergyValue() {
 async function fetchDataAndStore() {
   try {
     console.log("Fetching and storing sensor data...");
+    let initialKWHValueM = 0;
+    let initialKVAHValueM = 0;
 
     // Get the current date and calculate the start of the month
     const startOfMonth = new Date();
@@ -97,9 +99,10 @@ async function fetchDataAndStore() {
       console.log("No records found for this month. Unable to calculate energy consumption.");
       return;
     }
-
-    const initialKWHValueM = firstRecordThisMonth.TotalNet_KWH_meter_1;
-    const initialKVAHValueM = firstRecordThisMonth.TotalNet_KVAH_meter_1;
+    else{
+      initialKWHValueM = firstRecordThisMonth.TotalNet_KWH_meter_1;
+      initialKVAHValueM = firstRecordThisMonth.TotalNet_KVAH_meter_1;
+    }
 
     console.log("This month's initial values:", {
       initialKWHValueM,
